@@ -4,6 +4,10 @@ Categorizer for this Kaggle competition. To be used as part of my personal proje
 
 Requires: Python 3+ as use type hints
 
+Folder Structure:
+- Data: where the Pascal XML files with annotations are located. conversion.py assumes that this is where the directory is
+-
+
 Resources Used:
 - https://github.com/tensorflow/models/tree/master/research/object_detection
 - https://towardsdatascience.com/how-to-train-your-own-object-detector-with-tensorflows-object-detector-api-bec72ecfe1d9
