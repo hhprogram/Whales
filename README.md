@@ -2,6 +2,7 @@ https://www.kaggle.com/c/whale-categorization-playground
 
 Categorizer for this Kaggle competition. To be used as part of my personal project website whale game 'computer' player.
 
+Requires: Python 3+ as use type hints
 
 Resources Used:
 - https://github.com/tensorflow/models/tree/master/research/object_detection
