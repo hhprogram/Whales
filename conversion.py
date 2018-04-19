@@ -14,8 +14,6 @@ import pandas as pd
 import numpy as np
 import xml.etree.ElementTree as ET
 from typing import Union
-import io
-
 import tensorflow as tf
 
 from object_detection import dataset_util #note changed this slightly as didn't have a utils folder just named it object_detection
@@ -26,6 +24,9 @@ path_column = "path"
 # NOTE: should replace this with a dynamic function that can read the label map pbtxt and then create a dictionary
 # to map the class text to the class id
 label_map = {"fluke": 1}
+# for now just makes a directory called 'records' where the TFRecord files are placed. Didn't want to take the time to
+# make it dynamic so you could name your own directories.
+output_path = "records"
 
 def _xml_to_df(xml_dir: str, jpg_dir: str) -> pd.DataFrame:
     # taken from: https://github.com/datitran/raccoon_dataset/blob/master/xml_to_csv.py
@@ -148,7 +149,6 @@ def _write_TFRecord_file(input: Union[str, pd.DataFrame], output_path: str) -> N
 
 def run_conversion(xml_dir: str,
                    jpg_dir: str,
-                   output_path: str,
                    train_percent: float,
                    trainName: str="train",
                    testName: str="test",
@@ -156,22 +156,29 @@ def run_conversion(xml_dir: str,
     """helper function that is called by other modules to run the necessary conversion code from XMLs in PASCAL format
     to TFRecord"""
     df_images = _xml_to_df(xml_dir=xml_dir, jpg_dir=jpg_dir)
+    # make sure the percent is in number form and not in % form. (ie .X and not X)
+    if train_percent > 1:
+        train_percent = train_percent / 100
+    # checks and if no directory called OUTPUT_PATH, then creates one
+    if not os.path.isdir(output_path):
+        os.makedirs(output_path)
     # see for easy split of dataframe into 2 dataframes train and test:
     # https://stackoverflow.com/questions/24147278/how-do-i-create-test-and-train-samples-from-one-dataframe-with-pandas?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
     # also see: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.sample.html
     train_df = df_images.sample(frac=train_percent, replace=False)
+    # then drop all the indices in the train_df to get the testing dataframe object, avoids any overlap
     test_df = df_images.drop(train_df.index)
     trainRecordName = trainName + ".record"
     testRecordName = testName + ".record"
-    _write_TFRecord_file(train_df, output_path + trainRecordName)
-    print("Wrote train TFRecord file to ", output_path + trainRecordName)
-    _write_TFRecord_file(test_df, output_path + testRecordName)
-    print("Wrote test TFRecord file to ", output_path + testRecordName)
+    _write_TFRecord_file(train_df, os.path.join(output_path, trainRecordName))
+    print("Wrote train TFRecord file to ", os.path.join(output_path, trainRecordName))
+    _write_TFRecord_file(test_df, os.path.join(output_path, testRecordName))
+    print("Wrote test TFRecord file to ", os.path.join(output_path, testRecordName))
     if csv:
-        _df_to_csv(train_df, output_path + trainName +".csv")
-        print("Wrote train csv file to ", output_path + trainName +".csv")
-        _df_to_csv(test_df, output_path + testName + ".csv")
-        print("Wrote test csv file to ", output_path+ testName + ".csv")
+        _df_to_csv(train_df, os.path.join(output_path, trainName + ".csv"))
+        print("Wrote train csv file to ", os.path.join(output_path, trainName +".csv"))
+        _df_to_csv(test_df, os.path.join(output_path, testName + ".csv"))
+        print("Wrote test csv file to ", os.path.join(output_path, testName + ".csv"))
 
 
 if __name__ == "__main__":

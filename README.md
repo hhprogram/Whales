@@ -22,9 +22,12 @@ General Steps:
 - We do this by first translating them to CSV files / dataframe objects(see `xml_to_csv.py` then taking these and converting
 them to TFrecords (`conversion.py`). Don't have to save to CSV file. Only do it if you want a nice readable CSV of all
 the images and their corresponding details. (This work is done in conversion.py and then user interacts with it through
-run_converter.py via command line to ensure that the relevant images are converted to TFRecord)
+run_converter.py via command line to ensure that the relevant images are converted to TFRecord). NOTE: this method creates
+a subdir `conversion.output_path` within this home directory where it puts the TFRecord files and any CSV files
 - Then train the model using: https://github.com/tensorflow/models/blob/master/research/object_detection/train.py#L17
-Decided not to wrap it with my own command line function. (user then runs train.py in the terminal with the appriorate flags
+Decided not to wrap it with my own command line function. user then runs train.py in the terminal with the appriorate flags see
+below:
+
 
 ex.) For the 'simple usage' do not have a good example of the 2nd usage yet as don't understand the last input of 'input_config_path' and
 where that comes from as see 'model_config' and 'train_config' sections within the pipeline config file (we use faster_rcnn_resnet101_coco.config)
