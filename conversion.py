@@ -5,6 +5,8 @@
 # https://github.com/datitran/raccoon_dataset/blob/master/xml_to_csv.py
 # Then we feed this CSV file into the create_tf_examples function that is based on the outline given here:
 # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/using_your_own_dataset.md
+# NOTE: most functions have leading underscore to abstract functionality away and emphasize that only there are only
+# one function to be used to interact with this module
 
 import os
 import glob
@@ -25,14 +27,14 @@ path_column = "path"
 # to map the class text to the class id
 label_map = {"fluke": 1}
 
-def xml_to_df(xml_path: str, jpg_path: str) -> pd.DataFrame:
+def _xml_to_df(xml_dir: str, jpg_dir: str) -> pd.DataFrame:
     # taken from: https://github.com/datitran/raccoon_dataset/blob/master/xml_to_csv.py
     """takes a path to a directory that holds XML files output in PASCAL annotated format converts to dataframe object
     :returns a dataframe object that can be easily turned into a CSV or just passed on to another function to
     convert each row to a TFrecord"""
 
     # make sure we have the absolute path so that the path_column in the returned dataframe object is a complete path
-    abs_path = os.path.abspath(jpg_path)
+    abs_path = os.path.abspath(jpg_dir)
     def append_path(row: pd.Series):
         """small helper function used to create absolute path for the returned dataframe object. Since the whole
         Series (ie row) is fed into this function we take one of columns and append it to abs_path to make an
@@ -40,7 +42,7 @@ def xml_to_df(xml_path: str, jpg_path: str) -> pd.DataFrame:
         return os.path.join(abs_path, row[csv_column_names[0]])
 
     xml_list = []
-    for xml_file in glob.glob(xml_path + '/*.xml'):
+    for xml_file in glob.glob(xml_dir + '/*.xml'):
         tree = ET.parse(xml_file)
         root = tree.getroot()
         for member in root.findall('object'):
@@ -65,12 +67,12 @@ def xml_to_df(xml_path: str, jpg_path: str) -> pd.DataFrame:
     return xml_df
 
 
-def df_to_csv(df: pd.DataFrame , output_path: str) -> None:
+def _df_to_csv(df: pd.DataFrame, output_path: str) -> None:
     df.to_csv(output_path, index=None)
     print('Successfully converted xml to csv.')
 
 
-def create_tf_example(input: pd.Series) -> tf.train.Example:
+def _create_tf_example(input: pd.Series) -> tf.train.Example:
     #   outputs one tf record per call. Therefore, to convert all relevant images to tf records we need to loop and
     # call this method on each EXAMPLE
     """example: the input that holds all necessary info to convert it to a tf record. Not actual JPG file but
@@ -122,7 +124,7 @@ def create_tf_example(input: pd.Series) -> tf.train.Example:
     }))
     return tf_example
 
-def write_TFRecord_file(input: Union[str, pd.DataFrame], output_path: str) -> None:
+def _write_TFRecord_file(input: Union[str, pd.DataFrame], output_path: str) -> None:
     global label_map
     """INPUT can be a path to a CSV file that holds the xml file details. Or it's a dataframe object that holds the details"""
     if isinstance(input, str):
@@ -137,10 +139,42 @@ def write_TFRecord_file(input: Union[str, pd.DataFrame], output_path: str) -> No
     # https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.iterrows.html
     # it returns a tuple the first object in tuple is just the index of that row.
     for _, row in images.iterrows():
-        tf_example = create_tf_example(row)
+        tf_example = _create_tf_example(row)
+        # takes the Example object and then serializes to a string in the TFRecord file. Therefore, the TFRecord file
+        # has multiple Example objects within it
         writer.write(tf_example.SerializeToString())
 
     writer.close()
 
-df = xml_to_df("data", "train")
-write_TFRecord_file(df, "testRecord.record")
+def run_conversion(xml_dir: str,
+                   jpg_dir: str,
+                   output_path: str,
+                   train_percent: float,
+                   trainName: str="train",
+                   testName: str="test",
+                   csv: bool=False) -> None:
+    """helper function that is called by other modules to run the necessary conversion code from XMLs in PASCAL format
+    to TFRecord"""
+    df_images = _xml_to_df(xml_dir=xml_dir, jpg_dir=jpg_dir)
+    # see for easy split of dataframe into 2 dataframes train and test:
+    # https://stackoverflow.com/questions/24147278/how-do-i-create-test-and-train-samples-from-one-dataframe-with-pandas?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+    # also see: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.sample.html
+    train_df = df_images.sample(frac=train_percent, replace=False)
+    test_df = df_images.drop(train_df.index)
+    trainRecordName = trainName + ".record"
+    testRecordName = testName + ".record"
+    _write_TFRecord_file(train_df, output_path + trainRecordName)
+    print("Wrote train TFRecord file to ", output_path + trainRecordName)
+    _write_TFRecord_file(test_df, output_path + testRecordName)
+    print("Wrote test TFRecord file to ", output_path + testRecordName)
+    if csv:
+        _df_to_csv(train_df, output_path + trainName +".csv")
+        print("Wrote train csv file to ", output_path + trainName +".csv")
+        _df_to_csv(test_df, output_path + testName + ".csv")
+        print("Wrote test csv file to ", output_path+ testName + ".csv")
+
+
+if __name__ == "__main__":
+    # run via main to test for errors
+    df = _xml_to_df("data", "train")
+    _write_TFRecord_file(df, "testRecord.record")
