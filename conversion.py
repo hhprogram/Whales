@@ -8,16 +8,16 @@
 # NOTE: most functions have leading underscore to abstract functionality away and emphasize that only there are only
 # one function to be used to interact with this module
 
-import os
 import glob
-import pandas as pd
-import numpy as np
+import os
 import xml.etree.ElementTree as ET
 from typing import Union
+
+import numpy as np
+import pandas as pd
 import tensorflow as tf
 
-from object_detection import dataset_util #note changed this slightly as didn't have a utils folder just named it object_detection
-
+from object_detection.utils import dataset_util
 
 csv_column_names = ['filename', 'width', 'height', 'class', 'xmin', 'ymin', 'xmax', 'ymax']
 path_column = "path"

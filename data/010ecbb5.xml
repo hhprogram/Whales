@@ -1,0 +1,26 @@
+<annotation>
+	<folder>train</folder>
+	<filename>010ecbb5.jpg</filename>
+	<path>/home/harrison/Whales/train/010ecbb5.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>563</width>
+		<height>322</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>fluke</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>23</xmin>
+			<ymin>30</ymin>
+			<xmax>532</xmax>
+			<ymax>260</ymax>
+		</bndbox>
+	</object>
+</annotation>

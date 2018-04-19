@@ -25,6 +25,18 @@ the images and their corresponding details. (This work is done in conversion.py 
 run_converter.py via command line to ensure that the relevant images are converted to TFRecord). NOTE: this method creates
 a subdir `conversion.output_path` within this home directory where it puts the TFRecord files and any CSV files
 - Then train the model using: https://github.com/tensorflow/models/blob/master/research/object_detection/train.py#L17
+    -Note: git cloned https://github.com/tensorflow/models
+    -Note: I cloned the repo to some other directory not within this 'Whales' directory as I wanted it to be easily
+    accessible to other projects. And thus in order to get this to work on your machine as described you'd have to clone
+    the same repo onto your computer and follow the installation steps accordingly
+    -Note: then followed installation instructions - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md
+    -Note: To run the protobuf compilation command: protoc object_detection/protos/*.proto --python_out=. found here:
+     https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md
+     I had to make sure my conda environment that I installed all of the necessary dependencies was activated before being
+     able to successfully compile protobuf
+    -Note: Running this: https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/installation.md#add-libraries-to-pythonpath
+    is required before the test installation step will work. Or else if you don't add it when you open a new terminal the
+    test step will give you an error
 Decided not to wrap it with my own command line function. user then runs train.py in the terminal with the appriorate flags see
 below:
 
@@ -37,7 +49,13 @@ python train.py --logtostderr --train_dir=path/to/train_dir --pipeline_config_pa
 
 Explaining the above.
 --train_dir value is the directory where all the training output for the model will go, the actual
-model graph file and any tensorboard related files.
+model graph file and any tensorboard related files. So for us we have 'training/'. This is the directory that we point
+to when we run tensorboard and want to see the training progress - (`tensorboard --logdir=training/`)
 -- pipeline_config_path value is the path to the 'TrainEvalPipelineConfig configuration file' that we use to config the
 file will whatever preliminary settings we want. This file also tells the model how many labels it needs to classify,
-where to save model checkpoints, and where to find the data to be used for testing and validation
+where to save model checkpoints, and where to find the data to be used for testing and validation ->i.e note that
+ when calling `train.py` we do not tell it where the model can find the training and testing data that's because
+ that info is in the config file itself (in this project I use the faster_rcnn_resnet101_coco.config under the
+ faster_rcnn_resnet101_coco_2018_01_28 directory)
+-- Note: For me the train_dir path had to be directed to the directory within 'Whales' which was in another directoy
+as well as the pipeline path which had to point to the faster_rcnn_resnet101_coco_2018_01_28 directory
