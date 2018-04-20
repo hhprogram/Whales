@@ -28,9 +28,11 @@ def run_converter():
                         help="Split between % images used in training and validation If not given default 80/20.format= train %, test %",
                         type=train_test_split)
     parser.add_argument("--trainRecordName",
-                        help="If you want to customize the filename for train.record to be used to train model. Default to train.record")
+                        help="If you want to customize the filename for train.record to be used to train model. "
+                             "Note: if you change this name you'll have to change the corresponding config path as well. Default to train.record")
     parser.add_argument("--testRecordName",
-                        help="If you want to customize the filename for test.record to be used to train model. Default to test.record")
+                        help="If you want to customize the filename for test.record to be used to train model. "
+                             "Note: if you change this name you'll have to change the corresponding config path as well. Default to test.record")
     # parser.add_argument('--foo', help='foo help')
     # call parse_args on the parser object to get the namespace object that holds all the args. (i.e can then access the
     # argument values using dot notation. Where you would do args.foo to get the --foo argument. Ie the text following
